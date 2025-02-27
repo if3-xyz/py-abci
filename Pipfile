@@ -10,8 +10,10 @@ black = "*"
 build = "*"
 
 [packages]
-protobuf = "*"
+protobuf = "<=3.20.0"
 colorlog = "*"
+grpcio = "<=3.20.0"
+grpcio-tools = "*"
 
 [requires]
 python_version = "3.9"

@@ -4,14 +4,9 @@ TCP Server that communicates with Tendermint
 import asyncio
 import signal
 import platform
-from .utils import *
+from .utils import read_messages, write_message, get_logger
 from io import BytesIO
-from tendermint.abci.types_pb2 import (
-    Request,
-    Response,
-    ResponseException,
-    ResponseFlush,
-)
+from .types import Request, Response, ExceptionResponse
 from .application import BaseApplication
 
 DefaultABCIPort = 26658
@@ -35,73 +30,84 @@ class ProtocolHandler:
         handler = getattr(self, req_type, self.no_match)
         return handler(req)
 
-    def flush(self, req) -> bytes:
-        response = Response(flush=ResponseFlush())
-        return write_message(response)
-
     def info(self, req) -> bytes:
-        result = self.app.info(req.info)
+        result = self.app.Info(req.info)
         response = Response(info=result)
         return write_message(response)
 
     def check_tx(self, req) -> bytes:
-        result = self.app.check_tx(req.check_tx.tx)
+        result = self.app.CheckTx(req.check_tx)
         response = Response(check_tx=result)
         return write_message(response)
 
-    def deliver_tx(self, req) -> bytes:
-        result = self.app.deliver_tx(req.deliver_tx.tx)
-        response = Response(deliver_tx=result)
-        return write_message(response)
-
-    def query(self, req) -> bytes:
-        result = self.app.query(req.query)
-        response = Response(query=result)
-        return write_message(response)
-
     def commit(self, req) -> bytes:
-        result = self.app.commit()
+        result = self.app.Commit(req.commit)
         response = Response(commit=result)
         return write_message(response)
 
-    def begin_block(self, req) -> bytes:
-        result = self.app.begin_block(req.begin_block)
-        response = Response(begin_block=result)
-        return write_message(response)
-
-    def end_block(self, req) -> bytes:
-        result = self.app.end_block(req.end_block)
-        response = Response(end_block=result)
+    def query(self, req) -> bytes:
+        result = self.app.Query(req.query)
+        response = Response(query=result)
         return write_message(response)
 
     def init_chain(self, req) -> bytes:
-        result = self.app.init_chain(req.init_chain)
+        result = self.app.InitChain(req.init_chain)
         response = Response(init_chain=result)
         return write_message(response)
 
     def list_snapshots(self, req) -> bytes:
-        result = self.app.list_snapshots(req.list_snapshots)
+        result = self.app.ListSnapshots(req.list_snapshots)
         response = Response(list_snapshots=result)
         return write_message(response)
 
     def offer_snapshot(self, req) -> bytes:
-        result = self.app.offer_snapshot(req.offer_snapshot)
+        result = self.app.OfferSnapshot(req.offer_snapshot)
         response = Response(offer_snapshot=result)
         return write_message(response)
 
     def load_snapshot_chunk(self, req) -> bytes:
-        result = self.app.load_snapshot_chunk(req.load_snapshot_chunk)
+        result = self.app.LoadSnapshotChunk(req.load_snapshot_chunk)
         response = Response(load_snapshot_chunk=result)
         return write_message(response)
 
     def apply_snapshot_chunk(self, req) -> bytes:
-        result = self.app.apply_snapshot_chunk(req.apply_snapshot_chunk)
+        result = self.app.ApplySnapshotChunk(req.apply_snapshot_chunk)
         response = Response(apply_snapshot_chunk=result)
         return write_message(response)
 
+    def prepare_proposal(self, req) -> bytes:
+        result = self.app.PrepareProposal(req.prepare_proposal)
+        response = Response(prepare_proposal=result)
+        return write_message(response)
+
+    def process_proposal(self, req) -> bytes:
+        result = self.app.ProcessProposal(req.process_proposal)
+        response = Response(process_proposal=result)
+        return write_message(response)
+
+    def extend_vote(self, req) -> bytes:
+        result = self.app.ExtendVote(req.extend_vote)
+        response = Response(extend_vote=result)
+        return write_message(response)
+
+    def verify_vote_extension(self, req) -> bytes:
+        result = self.app.VerifyVoteExtension(req.verify_vote_extension)
+        response = Response(verify_vote_extension=result)
+        return write_message(response)
+
+    def finalize_block(self, req) -> bytes:
+        result = self.app.FinalizeBlock(req.finalize_block)
+        response = Response(finalize_block=result)
+        return write_message(response)
+
+    def flush(self, req) -> bytes:
+        result = self.app.Flush(req.flush)
+        response = Response(flush=result)
+        return write_message(response)
+ 
     def no_match(self, req) -> bytes:
         response = Response(
-            exception=ResponseException(error="ABCI request not found")
+            exception=ExceptionResponse(error="ABCI request not found")
         )
         return write_message(response)
 

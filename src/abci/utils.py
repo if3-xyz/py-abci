@@ -2,7 +2,7 @@
 Various utils
 """
 from io import BytesIO
-import logging, colorlog
+import logging
 from google.protobuf.message import Message
 
 
@@ -15,19 +15,9 @@ def get_logger(name: str) -> logging.Logger:
     if logger.hasHandlers():
         return logger
 
-    formatter = colorlog.ColoredFormatter(
-        "%(log_color)s%(levelname)-8s%(reset)s %(white)s%(message)s",
-        datefmt=None,
-        reset=True,
-        log_colors={
-            "DEBUG": "cyan",
-            "INFO": "green",
-            "WARNING": "yellow",
-            "ERROR": "red",
-            "CRITICAL": "red,bg_white",
-        },
-        secondary_log_colors={},
-        style="%",
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
     )
 
     handler = logging.StreamHandler()
@@ -43,7 +33,6 @@ def encode_varint(number: int) -> bytes:
     Encode varint into bytes
     """
     # Shift to int64
-    number = number << 1
     buf = b""
     while True:
         towrite = number & 0x7F
@@ -98,7 +87,7 @@ def read_messages(reader: BytesIO, message: Message) -> Message:
     """
     while True:
         try:
-            length = decode_varint(reader) >> 1
+            length = decode_varint(reader)
         except EOFError:
             return
         data = reader.read(length)
