@@ -6,6 +6,6 @@ build-backend = "setuptools.build_meta"
 line-length = 80
 
 [tool.poetry.dependencies]
-grpcio = "<=3.20.0"
+grpcio = "<=1.70.0"
 grpcio-tools = "*"
 protobuf = "*"
