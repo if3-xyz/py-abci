@@ -33,4 +33,6 @@ from cometbft.abci.v1.types_pb2 import (  # noqa
     Request,
     Response,
     ExceptionResponse,
+    Event,
+    EventAttribute,
 )
