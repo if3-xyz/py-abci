@@ -1,4 +1,3 @@
-from src.abci.server import ABCIServer
 from src.abci.application import BaseApplication, OkCode, ErrorCode
 from src.abci.types import (
     CheckTxRequest,
@@ -19,14 +18,14 @@ class KVStoreApplication(BaseApplication):
         self.store = {}  # Persistent key-value store
         self.pending_txs = []  # Store uncommitted transactions
 
-    def CheckTx(self, request: CheckTxRequest) -> CheckTxResponse:
+    def check_tx(self, request: CheckTxRequest) -> CheckTxResponse:
         # Ensure the transaction is in the form of "key=value"
         tx = request.tx.decode("utf-8")
         if "=" not in tx:
             return CheckTxResponse(code=ErrorCode)
         return CheckTxResponse(code=OkCode)
 
-    def FinalizeBlock(self, request: FinalizeBlockRequest) -> FinalizeBlockResponse:
+    def finalize_block(self, request: FinalizeBlockRequest) -> FinalizeBlockResponse:
         # Collect transactions but do NOT store them yet
         tx_results = []
         self.pending_txs = request.txs  # Store pending transactions
@@ -36,7 +35,7 @@ class KVStoreApplication(BaseApplication):
 
         return FinalizeBlockResponse(tx_results=tx_results)
 
-    def Commit(self, request: CommitRequest) -> CommitResponse:
+    def commit(self, request: CommitRequest) -> CommitResponse:
         # Apply pending transactions to the store
         for tx in self.pending_txs:
             tx_str = tx.decode("utf-8")
@@ -46,7 +45,7 @@ class KVStoreApplication(BaseApplication):
         self.pending_txs = []  # Clear pending transactions after commit
         return CommitResponse(retain_height=1)
 
-    def Query(self, request: QueryRequest) -> QueryResponse:
+    def query(self, request: QueryRequest) -> QueryResponse:
         key = request.data.decode("utf-8")
         value = self.store.get(key)
         if value is None:

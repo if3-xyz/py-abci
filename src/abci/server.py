@@ -31,72 +31,72 @@ class ProtocolHandler:
         return handler(req)
 
     def info(self, req) -> bytes:
-        result = self.app.Info(req.info)
+        result = self.app.info(req.info)
         response = Response(info=result)
         return write_message(response)
 
     def check_tx(self, req) -> bytes:
-        result = self.app.CheckTx(req.check_tx)
+        result = self.app.check_tx(req.check_tx)
         response = Response(check_tx=result)
         return write_message(response)
 
     def commit(self, req) -> bytes:
-        result = self.app.Commit(req.commit)
+        result = self.app.commit(req.commit)
         response = Response(commit=result)
         return write_message(response)
 
     def query(self, req) -> bytes:
-        result = self.app.Query(req.query)
+        result = self.app.query(req.query)
         response = Response(query=result)
         return write_message(response)
 
     def init_chain(self, req) -> bytes:
-        result = self.app.InitChain(req.init_chain)
+        result = self.app.init_chain(req.init_chain)
         response = Response(init_chain=result)
         return write_message(response)
 
     def list_snapshots(self, req) -> bytes:
-        result = self.app.ListSnapshots(req.list_snapshots)
+        result = self.app.list_snapshots(req.list_snapshots)
         response = Response(list_snapshots=result)
         return write_message(response)
 
     def offer_snapshot(self, req) -> bytes:
-        result = self.app.OfferSnapshot(req.offer_snapshot)
+        result = self.app.offer_snapshot(req.offer_snapshot)
         response = Response(offer_snapshot=result)
         return write_message(response)
 
     def load_snapshot_chunk(self, req) -> bytes:
-        result = self.app.LoadSnapshotChunk(req.load_snapshot_chunk)
+        result = self.app.load_snapshot_chunk(req.load_snapshot_chunk)
         response = Response(load_snapshot_chunk=result)
         return write_message(response)
 
     def apply_snapshot_chunk(self, req) -> bytes:
-        result = self.app.ApplySnapshotChunk(req.apply_snapshot_chunk)
+        result = self.app.apply_snapshot_chunk(req.apply_snapshot_chunk)
         response = Response(apply_snapshot_chunk=result)
         return write_message(response)
 
     def prepare_proposal(self, req) -> bytes:
-        result = self.app.PrepareProposal(req.prepare_proposal)
+        result = self.app.prepare_proposal(req.prepare_proposal)
         response = Response(prepare_proposal=result)
         return write_message(response)
 
     def process_proposal(self, req) -> bytes:
-        result = self.app.ProcessProposal(req.process_proposal)
+        result = self.app.process_proposal(req.process_proposal)
         response = Response(process_proposal=result)
         return write_message(response)
 
     def extend_vote(self, req) -> bytes:
-        result = self.app.ExtendVote(req.extend_vote)
+        result = self.app.extend_vote(req.extend_vote)
         response = Response(extend_vote=result)
         return write_message(response)
 
     def verify_vote_extension(self, req) -> bytes:
-        result = self.app.VerifyVoteExtension(req.verify_vote_extension)
+        result = self.app.verify_vote_extension(req.verify_vote_extension)
         response = Response(verify_vote_extension=result)
         return write_message(response)
 
     def finalize_block(self, req) -> bytes:
-        result = self.app.FinalizeBlock(req.finalize_block)
+        result = self.app.finalize_block(req.finalize_block)
         response = Response(finalize_block=result)
         return write_message(response)
 

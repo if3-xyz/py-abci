@@ -40,34 +40,34 @@ ErrorCode = 1
 
 class BaseApplication:
 
-    def Info(self, request: InfoRequest) -> InfoResponse:
+    def info(self, request: InfoRequest) -> InfoResponse:
         return InfoResponse()
 
-    def CheckTx(self, request: CheckTxRequest) -> CheckTxResponse:
+    def check_tx(self, request: CheckTxRequest) -> CheckTxResponse:
         return CheckTxResponse(code=OkCode)
 
-    def Commit(self, request: CommitRequest) -> CommitResponse:
+    def commit(self, request: CommitRequest) -> CommitResponse:
         return CommitResponse(retain_height=1)
 
-    def Query(self, request: QueryRequest) -> QueryResponse:
+    def query(self, request: QueryRequest) -> QueryResponse:
         return QueryResponse(code=OkCode)
 
-    def InitChain(self, request: InitChainRequest) -> InitChainResponse:
+    def init_chain(self, request: InitChainRequest) -> InitChainResponse:
         return InitChainResponse()
 
-    def ListSnapshots(self, request: ListSnapshotsRequest) -> ListSnapshotsResponse:
+    def list_snapshots(self, request: ListSnapshotsRequest) -> ListSnapshotsResponse:
         return ListSnapshotsResponse()
 
-    def OfferSnapshot(self, request: OfferSnapshotRequest) -> OfferSnapshotResponse:
+    def offer_snapshot(self, request: OfferSnapshotRequest) -> OfferSnapshotResponse:
         return OfferSnapshotResponse()
 
-    def LoadSnapshotChunk(self, request: LoadSnapshotChunkRequest) -> LoadSnapshotChunkResponse:
+    def load_snapshot_chunk(self, request: LoadSnapshotChunkRequest) -> LoadSnapshotChunkResponse:
         return LoadSnapshotChunkResponse()
 
-    def ApplySnapshotChunk(self, request: ApplySnapshotChunkRequest) -> ApplySnapshotChunkResponse:
+    def apply_snapshot_chunk(self, request: ApplySnapshotChunkRequest) -> ApplySnapshotChunkResponse:
         return ApplySnapshotChunkResponse()
 
-    def PrepareProposal(self, request: PrepareProposalRequest) -> PrepareProposalResponse:
+    def prepare_proposal(self, request: PrepareProposalRequest) -> PrepareProposalResponse:
         txs = []
         total_bytes = 0
         for tx in request.txs:
@@ -77,16 +77,16 @@ class BaseApplication:
             txs.append(tx)
         return PrepareProposalResponse(txs=txs)
 
-    def ProcessProposal(self, request: ProcessProposalRequest) -> ProcessProposalResponse:
+    def process_proposal(self, request: ProcessProposalRequest) -> ProcessProposalResponse:
         return ProcessProposalResponse(status=1)
 
-    def ExtendVote(self, request: ExtendVoteRequest) -> ExtendVoteResponse:
+    def extend_vote(self, request: ExtendVoteRequest) -> ExtendVoteResponse:
         return ExtendVoteResponse(vote_extension=b"")
 
-    def VerifyVoteExtension(self, request: VerifyVoteExtensionRequest) -> VerifyVoteExtensionResponse:
+    def verify_vote_extension(self, request: VerifyVoteExtensionRequest) -> VerifyVoteExtensionResponse:
         return VerifyVoteExtensionResponse(status=1)
 
-    def FinalizeBlock(self, request: FinalizeBlockRequest) -> FinalizeBlockResponse:
+    def finalize_block(self, request: FinalizeBlockRequest) -> FinalizeBlockResponse:
         tx_results = []
         for _ in request.txs:
             tx_results.append(ExecTxResult(code=OkCode))

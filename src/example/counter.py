@@ -32,8 +32,8 @@ from cometbft.abci.v1.types_pb2 import (
     CommitResponse,
 )
 
-from abci.server import ABCIServer
 from abci.application import BaseApplication, OkCode, ErrorCode
+from cometbft.abci.v1beta3.types_pb2 import ExecTxResult
 
 
 # Tx encoding/decoding
@@ -78,7 +78,7 @@ class SimpleCounter(BaseApplication):
             return CheckTxResponse(code=ErrorCode)
         return CheckTxResponse(code=OkCode)
 
-    def FinalizeBlock(self, request: FinalizeBlockRequest) -> FinalizeBlockResponse:
+    def finalize_block(self, request: FinalizeBlockRequest) -> FinalizeBlockResponse:
         # Collect transactions but do NOT store them yet
         tx_results = []
         self.pending_txs = request.txs  # Store pending transactions
@@ -106,12 +106,3 @@ class SimpleCounter(BaseApplication):
         """Return the current encode state value to tendermint"""
         hash = struct.pack(">Q", self.txCount)
         return CommitResponse(data=hash)
-
-
-def main():
-    app = ABCIServer(app=SimpleCounter())
-    app.run()
-
-
-if __name__ == "__main__":
-    main()
