@@ -101,7 +101,7 @@ class ProtocolHandler:
         return write_message(response)
 
     def flush(self, req) -> bytes:
-        result = self.app.Flush(req.flush)
+        result = self.app.flush(req.flush)
         response = Response(flush=result)
         return write_message(response)
  

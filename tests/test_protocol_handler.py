@@ -33,7 +33,7 @@ class ExampleApp(BaseApplication):
     def __init__(self):
         self.validators = []
 
-    def Info(self, req):
+    def info(self, req):
         v = req.version
         r = InfoResponse(
             version=v,
@@ -43,18 +43,18 @@ class ExampleApp(BaseApplication):
         )
         return r
 
-    def InitChain(self, req):
+    def init_chain(self, req):
         self.validators = req.validators
         return InitChainResponse()
 
-    def CheckTx(self, req):
+    def check_tx(self, req):
         return CheckTxResponse(code=OkCode, data=req.tx, log="bueno")
 
-    def Query(self, req):
+    def query(self, req):
         d = req.data
         return QueryResponse(code=OkCode, value=d)
 
-    def FinalizeBlock(self, req):
+    def finalize_block(self, req):
         # Create a TxResult for the transaction
         tx_result = ExecTxResult(
             code=OkCode,
@@ -70,9 +70,7 @@ class ExampleApp(BaseApplication):
             app_hash=b"hash"
         )
 
-    def Commit(self, req):
-        # CommitResponse doesn't have a data field in the current protobuf definition
-        # It only has retain_height field according to the error
+    def commit(self, req):
         return CommitResponse(retain_height=0)
 
 
