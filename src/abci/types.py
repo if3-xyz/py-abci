@@ -28,6 +28,8 @@ from cometbft.abci.v1.types_pb2 import (  # noqa
     FinalizeBlockRequest,
     FinalizeBlockResponse,
     ExecTxResult,
+    FlushRequest,
+    FlushResponse,
     Request,
     Response,
     ExceptionResponse,

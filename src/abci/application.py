@@ -28,6 +28,8 @@ from .types import (
     FinalizeBlockRequest,
     FinalizeBlockResponse,
     ExecTxResult,
+    FlushRequest,
+    FlushResponse,
 )
 
 # All is good
@@ -89,3 +91,6 @@ class BaseApplication:
         for _ in request.txs:
             tx_results.append(ExecTxResult(code=OkCode))
         return FinalizeBlockResponse(tx_results=tx_results)
+
+    def Flush(self, request: FlushRequest) -> FlushResponse:
+        return FlushResponse()

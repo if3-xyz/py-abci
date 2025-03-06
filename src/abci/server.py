@@ -99,6 +99,11 @@ class ProtocolHandler:
         result = self.app.FinalizeBlock(req.finalize_block)
         response = Response(finalize_block=result)
         return write_message(response)
+
+    def flush(self, req) -> bytes:
+        result = self.app.Flush(req.flush)
+        response = Response(flush=result)
+        return write_message(response)
  
     def no_match(self, req) -> bytes:
         response = Response(
