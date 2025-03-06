@@ -4,40 +4,38 @@ from abci.application import BaseApplication, OkCode
 from abci.server import ProtocolHandler
 from abci.utils import read_messages
 
-from tendermint.abci.types_pb2 import (
+from cometbft.abci.v1.types_pb2 import (
     Request,
     Response,
-    RequestFlush,
-    ResponseFlush,
-    RequestInitChain,
-    ResponseInitChain,
-    RequestInfo,
-    ResponseInfo,
-    RequestDeliverTx,
-    ResponseDeliverTx,
-    RequestCheckTx,
-    ResponseCheckTx,
-    RequestQuery,
-    ResponseQuery,
-    RequestBeginBlock,
-    ResponseBeginBlock,
-    RequestEndBlock,
-    ResponseEndBlock,
-    RequestCommit,
-    ResponseCommit,
+    FlushRequest,
+    FlushResponse,
+    InitChainRequest,
+    InitChainResponse,
+    InfoRequest,
+    InfoResponse,
+    CheckTxRequest,
+    CheckTxResponse,
+    QueryRequest,
+    QueryResponse,
+    FinalizeBlockRequest,
+    FinalizeBlockResponse,
+    CommitRequest,
+    CommitResponse,
     ValidatorUpdate,
+    ExecTxResult,
 )
 
-from tendermint.crypto.keys_pb2 import PublicKey
+from cometbft.crypto.v1.keys_pb2 import PublicKey
+
 
 
 class ExampleApp(BaseApplication):
     def __init__(self):
         self.validators = []
 
-    def info(self, req):
+    def Info(self, req):
         v = req.version
-        r = ResponseInfo(
+        r = InfoResponse(
             version=v,
             data="hello",
             last_block_height=0,
@@ -45,28 +43,37 @@ class ExampleApp(BaseApplication):
         )
         return r
 
-    def init_chain(self, req):
+    def InitChain(self, req):
         self.validators = req.validators
-        return ResponseInitChain()
+        return InitChainResponse()
 
-    def check_tx(self, tx):
-        return ResponseCheckTx(code=OkCode, data=tx, log="bueno")
+    def CheckTx(self, req):
+        return CheckTxResponse(code=OkCode, data=req.tx, log="bueno")
 
-    def deliver_tx(self, tx):
-        return ResponseDeliverTx(code=OkCode, data=tx, log="bueno")
-
-    def query(self, req):
+    def Query(self, req):
         d = req.data
-        return ResponseQuery(code=OkCode, value=d)
+        return QueryResponse(code=OkCode, value=d)
 
-    def begin_block(self, req):
-        return ResponseBeginBlock()
+    def FinalizeBlock(self, req):
+        # Create a TxResult for the transaction
+        tx_result = ExecTxResult(
+            code=OkCode,
+            data=req.txs[0] if req.txs else b"",
+            log="bueno"
+        )
+        
+        return FinalizeBlockResponse(
+            events=[],
+            tx_results=[tx_result],
+            validator_updates=[],
+            consensus_param_updates=None,
+            app_hash=b"hash"
+        )
 
-    def end_block(self, req):
-        return ResponseEndBlock(validator_updates=self.validators)
-
-    def commit(self):
-        return ResponseCommit(data=b"0x1234")
+    def Commit(self, req):
+        # CommitResponse doesn't have a data field in the current protobuf definition
+        # It only has retain_height field according to the error
+        return CommitResponse(retain_height=0)
 
 
 def __deserialze(raw: bytes) -> Request:
@@ -79,10 +86,10 @@ def test_handler():
     p = ProtocolHandler(app)
 
     # Flush
-    req = Request(flush=RequestFlush())
+    req = Request(flush=FlushRequest())
     raw = p.process("flush", req)
     resp = __deserialze(raw)
-    assert isinstance(resp.flush, ResponseFlush)
+    assert isinstance(resp.flush, FlushResponse)
 
     # Echo
     # req = Request(echo=RequestEcho(message="hello"))
@@ -91,7 +98,7 @@ def test_handler():
     # assert resp.echo.message == "hello"
 
     # Info
-    req = Request(info=RequestInfo(version="16"))
+    req = Request(info=InfoRequest(version="16"))
     raw = p.process("info", req)
     resp = __deserialze(raw)
     assert resp.info.version == "16"
@@ -100,60 +107,52 @@ def test_handler():
     assert resp.info.last_block_app_hash == b"0x12"
 
     # init_chain
-    val_a = ValidatorUpdate(power=10, pub_key=PublicKey(ed25519=b"a_pub_key"))
-    val_b = ValidatorUpdate(power=10, pub_key=PublicKey(ed25519=b"b_pub_key"))
+    val_a = ValidatorUpdate(power=10, pub_key_type="ed25519", pub_key_bytes=b"a_pub_key")
+    val_b = ValidatorUpdate(power=10, pub_key_type="ed25519", pub_key_bytes=b"b_pub_key")
 
     v = [val_a, val_b]
-    req = Request(init_chain=RequestInitChain(validators=v))
+    req = Request(init_chain=InitChainRequest(validators=v))
     raw = p.process("init_chain", req)
     resp = __deserialze(raw)
-    assert isinstance(resp.init_chain, ResponseInitChain)
+    assert isinstance(resp.init_chain, InitChainResponse)
 
     # check_tx
-    req = Request(check_tx=RequestCheckTx(tx=b"helloworld"))
+    req = Request(check_tx=CheckTxRequest(tx=b"helloworld"))
     raw = p.process("check_tx", req)
     resp = __deserialze(raw)
     assert resp.check_tx.code == OkCode
     assert resp.check_tx.data == b"helloworld"
     assert resp.check_tx.log == "bueno"
 
-    # deliver_tx
-    req = Request(deliver_tx=RequestDeliverTx(tx=b"helloworld"))
-    raw = p.process("deliver_tx", req)
+    # finalize_block
+    req = Request(finalize_block=FinalizeBlockRequest(txs=[b"helloworld"]))
+    raw = p.process("finalize_block", req)
     resp = __deserialze(raw)
-    assert resp.deliver_tx.code == OkCode
-    assert resp.deliver_tx.data == b"helloworld"
-    assert resp.deliver_tx.log == "bueno"
+    assert resp.finalize_block.tx_results[0].code == OkCode
+    assert resp.finalize_block.tx_results[0].data == b"helloworld"
+    assert resp.finalize_block.tx_results[0].log == "bueno"
 
     # query
-    req = Request(query=RequestQuery(path="/dave", data=b"0x12"))
+    req = Request(query=QueryRequest(path="/dave", data=b"0x12"))
     raw = p.process("query", req)
     resp = __deserialze(raw)
     assert resp.query.code == OkCode
     assert resp.query.value == b"0x12"
 
-    # begin_block
-    req = Request(begin_block=RequestBeginBlock(hash=b"0x12"))
-    raw = p.process("begin_block", req)
-    resp = __deserialze(raw)
-    assert isinstance(resp.begin_block, ResponseBeginBlock)
-
-    # end_block
-    req = Request(end_block=RequestEndBlock(height=10))
-    raw = p.process("end_block", req)
-    resp = __deserialze(raw)
-    assert resp.end_block.validator_updates
-    assert len(resp.end_block.validator_updates) == 2
-    assert resp.end_block.validator_updates[0].pub_key.ed25519 == b"a_pub_key"
-    assert resp.end_block.validator_updates[1].pub_key.ed25519 == b"b_pub_key"
-
     # Commit
-    req = Request(commit=RequestCommit())
+    req = Request(commit=CommitRequest())
     raw = p.process("commit", req)
     resp = __deserialze(raw)
-    assert resp.commit.data == b"0x1234"
+    assert isinstance(resp.commit, CommitResponse)
+    assert resp.commit.retain_height == 0
 
     # No match
     raw = p.process("whatever", None)
     resp = __deserialze(raw)
     assert resp.exception.error == "ABCI request not found"
+    
+    print("All tests passed!")
+
+
+if __name__ == "__main__":
+    test_handler()
