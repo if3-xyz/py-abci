@@ -79,7 +79,11 @@ class BaseApplication:
 
     def info(self, request: InfoRequest) -> InfoResponse:
         """
-        Return information about the application state.
+        Called by ABCI when the app first starts. A stateful application
+        should alway return the last blockhash and blockheight to prevent Tendermint
+        from replaying the transaction log from the beginning.  These values are used
+        to help Tendermint determine how to synch the node.
+        If blockheight == 0, Tendermint will call ``init_chain()``
         """
         return InfoResponse()
 
@@ -93,19 +97,24 @@ class BaseApplication:
 
     def commit(self, request: CommitRequest) -> CommitResponse:
         """
-        Persist application state and return state commitment.
+        Called after ``end_block``.  This should return a compact ``fingerprint``
+        of the current state of the application. This is usually the root hash
+        of a merkletree.  The returned data is used as part of the consensus process.
         """
         return CommitResponse(retain_height=1)
 
     def query(self, request: QueryRequest) -> QueryResponse:
         """
-        Query the application state.
+        This is commonly used to query the state of the application.
+        A non-zero 'code' in the response is used to indicate an error.
         """
         return QueryResponse(code=OkCode)
 
     def init_chain(self, request: InitChainRequest) -> InitChainResponse:
         """
-        Initialize chain with genesis state.
+        Called once, after ``info()`` during startup.  This is where you
+        can load initial ``genesis`` data, etc....
+        See ``info()``
         """
         return InitChainResponse()
 
