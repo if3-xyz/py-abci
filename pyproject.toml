@@ -9,3 +9,4 @@ line-length = 80
 grpcio = "<=1.70.0"
 grpcio-tools = "<=1.48.2"
 protobuf = "*"
+plyvel = "*"
