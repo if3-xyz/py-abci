@@ -10,6 +10,8 @@ from src.abci.types import (
     FinalizeBlockRequest,
     FinalizeBlockResponse,
     ExecTxResult,
+    InfoRequest,
+    InfoResponse,
 )
 import plyvel
 
@@ -18,7 +20,13 @@ class KVStoreApplication(BaseApplication):
     def __init__(self):
         super().__init__()
         self.store = {}  # Persistent key-value store
+        self.block_height = 0
         self.pending_txs = []  # Store uncommitted transactions
+
+    def info(self, request: InfoRequest) -> InfoResponse:
+        return InfoResponse(
+            last_block_height=self.block_height,
+        )
 
     def check_tx(self, request: CheckTxRequest) -> CheckTxResponse:
         # Ensure the transaction is in the form of "key=value"
@@ -44,6 +52,7 @@ class KVStoreApplication(BaseApplication):
             self.store[key] = value  # Store the key-value pair
 
         self.pending_txs = []  # Clear pending transactions after commit
+        self.block_height += 1
 
     def commit(self, request: CommitRequest) -> CommitResponse:
         # Apply pending transactions to the store
@@ -63,6 +72,9 @@ class PersistentKVStoreApplication(KVStoreApplication):
         super().__init__()
         self.db = plyvel.DB(db_path, create_if_missing=True)
         self.store = self.load_store()
+        self.block_height = self.db.get(b"block_height")
+        if self.block_height is None:
+            self.block_height = 0
 
     def load_store(self):
         store = self.db.get(b"store")
@@ -73,7 +85,11 @@ class PersistentKVStoreApplication(KVStoreApplication):
     def save_store(self):
         self.db.put(b"store", json.dumps(self.store).encode("utf-8"))
 
+    def save_block_height(self):
+        self.db.put(b"block_height", str(self.block_height).encode("utf-8"))
+
     def commit(self, request: CommitRequest):
         self._commit(request)
         self.save_store()
+        self.save_block_height()
         return CommitResponse(retain_height=1)
