@@ -58,20 +58,20 @@ class KVStoreApplication(BaseApplication):
         return QueryResponse(code=OkCode, value=value.encode("utf-8"))
 
 
-class PersistentKVStoreApplication:
+class PersistentKVStoreApplication(KVStoreApplication):
     def __init__(self, db_path: str):
         super().__init__()
-        self.db = plyvel.DB(db_path)
+        self.db = plyvel.DB(db_path, create_if_missing=True)
         self.store = self.load_store()
 
     def load_store(self):
-        store = self.db.get("store")
+        store = self.db.get(b"store")
         if store is None:
             return {}
         return json.loads(store.decode("utf-8"))
 
     def save_store(self):
-        self.db.put("store", json.dumps(self.store).encode("utf-8"))
+        self.db.put(b"store", json.dumps(self.store).encode("utf-8"))
 
     def commit(self, request: CommitRequest):
         self._commit(request)
